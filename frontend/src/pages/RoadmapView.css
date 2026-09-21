@@ -1,0 +1,283 @@
+.roadmap-view-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+.roadmap-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.download-report-btn {
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.22);
+}
+
+.roadmap-progress-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.progress-card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.progress-card-meta h3 {
+    font-size: 1.15rem;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.progress-card-percentage {
+    color: var(--color-primary);
+    font-weight: 800;
+    font-size: 1.1rem;
+}
+
+.progress-tasks-fraction {
+    font-size: 0.825rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.roadmap-grid-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+}
+
+@media (min-width: 1024px) {
+    .roadmap-grid-layout {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Weeks Checklist */
+.roadmap-weeks-card {
+    height: fit-content;
+}
+
+.weeks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.week-row {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    background: var(--bg-main);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    transition: var(--transition-smooth);
+}
+
+.week-row:hover {
+    background: var(--bg-muted);
+    border-color: var(--border-medium);
+}
+
+.week-row.task-complete {
+    background: var(--color-success-light);
+    border-color: var(--color-success-border);
+}
+
+.week-checkbox-col {
+    display: flex;
+    align-items: flex-start;
+    padding-top: 2px;
+}
+
+.week-check-box {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    outline: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+    transition: var(--transition-smooth);
+}
+
+.week-check-box:checked {
+    background: var(--color-success);
+    border-color: var(--color-success);
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+.week-check-box:checked::before {
+    content: "✔";
+    color: #FFFFFF;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+
+.week-content-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    cursor: pointer;
+}
+
+.week-number-tag {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 800;
+    color: var(--color-primary);
+    align-self: flex-start;
+}
+
+.week-row.task-complete .week-number-tag {
+    color: var(--color-success);
+}
+
+.week-task-text {
+    font-size: 0.925rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.week-row.task-complete .week-task-text {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+/* Recommendations Column */
+.right-recommendations-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+/* Projects lists */
+.recommended-projects-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.recommended-project-item {
+    background: var(--bg-main);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: var(--transition-smooth);
+}
+
+.recommended-project-item:hover {
+    border-color: var(--border-medium);
+    background: var(--bg-muted);
+}
+
+.project-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.project-top-row h4 {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.diff-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    letter-spacing: 0.04em;
+}
+
+.diff-badge.beginner {
+    background: var(--color-success-light);
+    color: #065F46;
+}
+
+.diff-badge.intermediate {
+    background: var(--color-info-light);
+    color: var(--color-info);
+}
+
+.diff-badge.advanced {
+    background: var(--color-danger-light);
+    color: #991B1B;
+}
+
+.project-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+}
+
+.project-meta-bottom {
+    font-size: 0.775rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+/* Materials Details */
+.materials-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.materials-sub {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.materials-sub h5 {
+    font-size: 0.825rem;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+}
+
+.materials-sub ul {
+    list-style-type: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.materials-sub ul li {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.roadmap-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    gap: 1rem;
+    color: var(--text-secondary);
+}

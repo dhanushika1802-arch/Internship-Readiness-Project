@@ -1,0 +1,261 @@
+.dashboard-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+.dashboard-header {
+    margin-bottom: 0.25rem;
+}
+
+.section-desc {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-top: 4px;
+    margin-bottom: 1.5rem;
+    line-height: 1.4;
+}
+
+/* Quick Metrics Row */
+.metrics-summary-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+.metric-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.35rem 1.5rem !important;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-smooth);
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+    border-color: var(--border-medium);
+}
+
+.metric-icon {
+    font-size: 1.85rem;
+    width: 54px;
+    height: 54px;
+    border-radius: 12px;
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-primary-border);
+    flex-shrink: 0;
+}
+
+.metric-card:nth-child(2) .metric-icon {
+    background: var(--color-secondary-light);
+    border-color: var(--color-secondary-border);
+    color: var(--color-secondary);
+}
+
+.metric-card:nth-child(3) .metric-icon {
+    background: var(--color-success-light);
+    border-color: var(--color-success-border);
+    color: var(--color-success);
+}
+
+.metric-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.metric-label {
+    font-size: 0.775rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+}
+
+.metric-val {
+    font-size: 1.25rem;
+    color: var(--text-primary);
+    font-weight: 800;
+    margin-top: 2px;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Score Visual Card */
+.score-analysis-card {
+    margin-bottom: 1.75rem;
+}
+
+.score-viz-block {
+    display: flex;
+    align-items: center;
+    gap: 2.25rem;
+    flex-wrap: wrap;
+    background: var(--bg-main);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-subtle);
+}
+
+.score-details-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    min-width: 220px;
+}
+
+.badge-readiness {
+    align-self: flex-start;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.775rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.level-beginner {
+    background: var(--bg-muted);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-medium);
+}
+
+.level-developing {
+    background: var(--color-warning-light);
+    color: #B45309;
+    border: 1px solid var(--color-warning-border);
+}
+
+.level-ready {
+    background: var(--color-info-light);
+    color: var(--color-info);
+    border: 1px solid var(--color-info-border);
+}
+
+.level-industry {
+    background: var(--color-success-light);
+    color: #059669;
+    border: 1px solid var(--color-success-border);
+}
+
+.readiness-descriptor {
+    color: var(--text-secondary);
+    font-size: 0.925rem;
+    line-height: 1.55;
+}
+
+/* Skills Competency Card */
+.skills-bars-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.skill-progress-bar-row {
+    display: flex;
+    flex-direction: column;
+}
+
+.skill-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.skill-name {
+    color: var(--text-primary);
+}
+
+.skill-percent {
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
+.quick-actions-box {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.quick-actions-box h4 {
+    font-size: 0.9rem;
+    margin-bottom: 0.85rem;
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.actions-button-grid {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.btn-sm {
+    padding: 0.55rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+}
+
+/* Loading & Error States */
+.dashboard-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    gap: 1rem;
+    color: var(--text-secondary);
+}
+
+/* spinner is in global.css */
+
+.dashboard-error {
+    text-align: center;
+    padding: 3rem;
+    max-width: 520px;
+    margin: 40px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    align-items: center;
+}
+
+.dashboard-error h3 {
+    color: var(--color-danger);
+    font-size: 1.2rem;
+}
+
+.dashboard-error p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .score-viz-block {
+        justify-content: center;
+        text-align: center;
+    }
+    .badge-readiness {
+        align-self: center;
+    }
+    .metrics-summary-row {
+        grid-template-columns: 1fr;
+    }
+}

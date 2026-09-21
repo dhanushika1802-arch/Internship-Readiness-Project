@@ -1,0 +1,2 @@
+# SPA fallback — all routes serve index.html (required for React Router / tab navigation)
+/*    /index.html   200
