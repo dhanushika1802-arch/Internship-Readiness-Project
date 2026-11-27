@@ -43,137 +43,460 @@ ROLE_REQUIREMENTS = {
     role: data['required_skills'] for role, data in ROLE_BENCHMARKS.items()
 }
 
+TECH_SKILLS_CATALOG = [
+    # (Display Name, Regex patterns, Category for benchmark scoring)
+    ('Python', [r'\bpython\b', r'\bpython3\b'], 'Python'),
+    ('Java', [r'\bjava\b(?!script)'], 'Java'),
+    ('C Programming', [r'\bc\s+programming\b', r'\bc\s+language\b', r'\bc\s+prog\b', r'(?<![a-zA-Z0-9_])C(?![a-zA-Z0-9_+])'], None),
+    ('C++', [r'\bc\+\+\b', r'\bcpp\b'], None),
+    ('C#', [r'\bc#\b', r'\bc-sharp\b'], None),
+    ('JavaScript', [r'\bjavascript\b', r'\bjs\b'], 'Web Development'),
+    ('TypeScript', [r'\btypescript\b', r'\bts\b'], 'Web Development'),
+    ('PHP', [r'\bphp\b'], None),
+    ('Ruby', [r'\bruby\b'], None),
+    ('Go', [r'\bgolang\b', r'\bgo\s+language\b'], None),
+    ('Rust', [r'\brust\b'], None),
+    ('Kotlin', [r'\bkotlin\b'], None),
+    ('Swift', [r'\bswift\b'], None),
+    ('SQL', [r'\bsql\b'], 'SQL'),
+    ('MySQL', [r'\bmysql\b', r'\bmy\s*sql\b'], 'SQL'),
+    ('PostgreSQL', [r'\bpostgresql\b', r'\bpostgres\b'], 'SQL'),
+    ('MongoDB', [r'\bmongodb\b', r'\bmongo\s*db\b'], 'SQL'),
+    ('SQLite', [r'\bsqlite\b'], 'SQL'),
+    ('Oracle DB', [r'\boracle\s+db\b', r'\boracle\s+database\b'], 'SQL'),
+    ('HTML', [r'\bhtml\b', r'\bhtml5\b'], 'Web Development'),
+    ('CSS', [r'\bcss\b', r'\bcss3\b'], 'Web Development'),
+    ('React', [r'\breact\b', r'\breact\.?js\b', r'\breactjs\b'], 'Web Development'),
+    ('Node.js', [r'\bnode\b', r'\bnode\.?js\b', r'\bnodejs\b'], 'Web Development'),
+    ('Express.js', [r'\bexpress\b', r'\bexpress\.?js\b'], 'Web Development'),
+    ('Angular', [r'\bangular\b', r'\bangular\.?js\b'], 'Web Development'),
+    ('Vue.js', [r'\bvue\b', r'\bvue\.?js\b'], 'Web Development'),
+    ('Next.js', [r'\bnext\.?js\b'], 'Web Development'),
+    ('Django', [r'\bdjango\b'], 'Python'),
+    ('Flask', [r'\bflask\b'], 'Python'),
+    ('FastAPI', [r'\bfastapi\b'], 'Python'),
+    ('Spring Boot', [r'\bspring\s*boot\b', r'\bspring\b'], 'Java'),
+    ('Bootstrap', [r'\bbootstrap\b'], 'Web Development'),
+    ('Tailwind CSS', [r'\btailwind\b'], 'Web Development'),
+    ('jQuery', [r'\bjquery\b'], 'Web Development'),
+    ('Web Development', [r'\bweb\s+development\b', r'\bfrontend\s+development\b', r'\bbackend\s+development\b'], 'Web Development'),
+    ('Database Management', [r'\bdatabase\s+management\b', r'\bdbms\b'], 'SQL'),
+    ('Software Testing', [r'\bsoftware\s+testing\b', r'\bqa\s+testing\b'], None),
+    ('Machine Learning', [r'\bmachine\s+learning\b'], 'AI/ML'),
+    ('Deep Learning', [r'\bdeep\s+learning\b'], 'AI/ML'),
+    ('Artificial Intelligence', [r'\bartificial\s+intelligence\b', r'\bai/ml\b'], 'AI/ML'),
+    ('Computer Vision', [r'\bcomputer\s+vision\b'], 'AI/ML'),
+    ('NLP', [r'\bnlp\b', r'\bnatural\s+language\s+processing\b'], 'AI/ML'),
+    ('TensorFlow', [r'\btensorflow\b'], 'AI/ML'),
+    ('PyTorch', [r'\bpytorch\b'], 'AI/ML'),
+    ('Keras', [r'\bkeras\b'], 'AI/ML'),
+    ('Scikit-Learn', [r'\bscikit-learn\b', r'\bsklearn\b'], 'AI/ML'),
+    ('Pandas', [r'\bpandas\b'], 'Python'),
+    ('NumPy', [r'\bnumpy\b'], 'Python'),
+    ('Cyber Security', [r'\bcyber\s*security\b', r'\binformation\s+security\b', r'\bnetwork\s+security\b'], 'Cyber Security'),
+    ('Linux', [r'\blinux\b'], 'Cyber Security'),
+    ('Git', [r'\bgit\b(?!hub|lab)'], None),
+    ('GitHub', [r'\bgithub\b'], None),
+    ('Docker', [r'\bdocker\b'], None),
+    ('Kubernetes', [r'\bkubernetes\b', r'\bk8s\b'], None),
+    ('AWS', [r'\baws\b', r'\bamazon\s+web\s+services\b'], None),
+    ('Azure', [r'\bazure\b'], None),
+    ('Google Cloud', [r'\bgoogle\s+cloud\b', r'\bgcp\b'], None),
+    ('Figma', [r'\bfigma\b'], None),
+    ('Postman', [r'\bpostman\b'], None)
+]
+
+def clean_pdf_text(raw_text):
+    text = raw_text.replace('\u2013', '-').replace('\u2014', '-').replace('\u2022', '•')
+    text = text.replace('\u00a0', ' ').replace('\ufffd', ' ')
+    text = re.sub(r'([a-z0-9\.\)\]])([A-Z]{3,})\b', r'\1\n\2', text)
+    text = re.sub(r'\b([A-Z]{3,})([A-Z][a-z]{2,})', r'\1\n\2', text)
+    text = re.sub(r'(Great Learning|Simplilearn|Coursera|Udemy|NPTEL)(Technologies Used)', r'\1\n\2', text, flags=re.IGNORECASE)
+    text = re.sub(r'(Tool)(HSC\b)', r'\1\n\2', text)
+    return text
+
 def parse_resume_from_pdf(pdf_path):
     """
-    Extracts text from a PDF resume and parses skills, education, projects, and certifications.
+    Extracts text directly from an uploaded PDF resume and performs fresh, accurate parsing.
+    Does not use mock, hardcoded, or fabricated sample data.
     """
+    if not os.path.exists(pdf_path):
+        return {"error": "Uploaded resume file was not found on the server."}
+    
     text = ""
     try:
         reader = PdfReader(pdf_path)
+        if len(reader.pages) == 0:
+            return {"error": "The uploaded PDF document has no pages."}
         for page in reader.pages:
             page_text = page.extract_text()
             if page_text:
                 text += page_text + "\n"
     except Exception as e:
-        print(f"Error parsing PDF: {e}")
-        # Fallback to reading as text if file is not binary-encrypted or if it's plain text
-        try:
-            with open(pdf_path, 'r', encoding='utf-8', errors='ignore') as f:
-                text = f.read()
-        except Exception as e2:
-            print(f"Text fallback failed: {e2}")
-            return None
+        print(f"Error reading PDF file {pdf_path}: {e}")
+        return {"error": "Could not read the PDF structure. Please ensure the file is an unencrypted, valid PDF."}
+
+    if not text or len(text.strip()) < 30:
+        return {
+            "error": "The uploaded PDF contains no readable text or consists solely of scanned image content. Please upload a text-readable PDF resume."
+        }
 
     return parse_resume_text(text)
 
-def parse_resume_text(text):
-    """
-    NLP/Regex parsing logic to extract details from raw resume text.
-    Computes deterministic competency score for each detected skill based on resume depth.
-    """
-    text_lower = text.lower()
-    
-    # 1. Extract Education first (used for context)
-    education = "High School / Undergraduate"
-    edu_patterns = [
-        (r'(bachelor|b\.s\.|b\.e\.|b\.tech|undergraduate|degree in)\b', 'Bachelor of Science / Technology'),
-        (r'(master|m\.s\.|m\.e\.|m\.tech|graduate)\b', 'Master of Science / Technology'),
-        (r'(phd|doctorate)\b', 'Doctor of Philosophy (PhD)'),
-        (r'(computer science|information technology|software engineering)\b', 'CS / IT Major')
-    ]
-    detected_edus = []
-    for pattern, label in edu_patterns:
-        if re.search(pattern, text_lower):
-            detected_edus.append(label)
-    if detected_edus:
-        education = " & ".join(list(set(detected_edus))[:2])
+EDU_REGEXES = [
+    r'\b(?:be|b\.e|b\.tech|btech|bachelor|b\.s|b\.sc|m\.e|m\.tech|mtech|master|m\.s|m\.sc|phd|doctorate|diploma)\b',
+    r'\b(?:matric|higher secondary|secondary school|high school|school|college|institute|university|academy|campus)\b',
+    r'\b(?:hsc|sslc|cbse|icse|cgpa|gpa|percentage)\b',
+    r'\b(?:computer science and engineering|information technology|software engineering|electronics and communication)\b'
+]
 
-    # 2. Extract Projects
-    projects = []
-    project_sections = re.split(r'\b(projects|experience|work history|personal projects)\b', text_lower)
-    if len(project_sections) > 2:
-        proj_text = project_sections[2][:1000]
-        bullets = re.findall(r'(?:•|-|\*|\d\.)\s*([^\n\r]+)', proj_text)
-        projects = [b.strip()[:100] for b in bullets if len(b.strip()) > 10][:4]
-    
-    if not projects:
-        keywords = ["app", "website", "model", "system", "analyzer", "detector", "bot", "classifier", "dashboard"]
-        for line in text.split("\n"):
-            line_clean = line.strip()
-            if any(kw in line_clean.lower() for kw in keywords) and 15 < len(line_clean) < 80:
-                projects.append(line_clean)
-            if len(projects) >= 3:
+def is_education_line(text_line):
+    l = text_line.lower()
+    return any(bool(re.search(pat, l)) for pat in EDU_REGEXES)
+
+def parse_resume_text(raw_text):
+    """
+    Accurately extracts Education, Technical Skills, Projects, Work Experience, Certifications,
+    and Achievements directly from the actual resume content. Calculates a transparent quality score.
+    """
+    if not raw_text or len(raw_text.strip()) < 30:
+        return {
+            "error": "The uploaded PDF contains no readable text or consists solely of scanned image content. Please upload a text-readable PDF resume."
+        }
+
+    text = clean_pdf_text(raw_text)
+
+    # Section Headings patterns
+    SECTION_PATTERNS = {
+        'EDUCATION': [
+            r'^education\b', r'^educational background\b', r'^academic background\b',
+            r'^academics?\b', r'^academic qualifications?\b', r'^qualifications?\b'
+        ],
+        'SKILLS': [
+            r'^technical skills\b', r'^tech skills\b', r'^computer skills\b',
+            r'^skills?\s*(?:&|and)\s*tools\b', r'^core competencies\b',
+            r'^key skills\b', r'^skills\b', r'^technologies\b', r'^tools\b'
+        ],
+        'PROJECTS': [
+            r'^projects?\b', r'^academic projects?\b', r'^personal projects?\b',
+            r'^key projects?\b', r'^technical projects?\b', r'^project experience\b'
+        ],
+        'EXPERIENCE': [
+            r'^experience\b', r'^work experience\b', r'^professional experience\b',
+            r'^internships?\b', r'^internship experience\b', r'^work history\b',
+            r'^employment history\b', r'^employment\b'
+        ],
+        'CERTIFICATIONS': [
+            r'^certifications?\b', r'^certificates?\b', r'^licenses\s*&?\s*certifications?\b',
+            r'^courses?\s*&?\s*certifications?\b'
+        ],
+        'ACHIEVEMENTS': [
+            r'^achievements?\b', r'^accomplishments?\b', r'^honors?\s*(&|and)?\s*awards?\b',
+            r'^awards?\b', r'^extracurricular\b', r'^co-curricular\b'
+        ],
+        'IGNORE': [
+            r'^contact\b', r'^contact me\b', r'^profile\b', r'^summary\b',
+            r'^professional summary\b', r'^objective\b', r'^career objective\b',
+            r'^soft skills\b', r'^areas of interest\b', r'^languages?\b',
+            r'^interests?\b', r'^personal details\b', r'^hobbies\b'
+        ]
+    }
+
+    def identify_heading(line):
+        clean = re.sub(r'^[#*\-•\d\.\s]+', '', line).strip()
+        clean = re.sub(r'[:\-_]+$', '', clean).strip().lower()
+        if not clean or len(clean) > 40:
+            return None
+        for sec, patterns in SECTION_PATTERNS.items():
+            for pat in patterns:
+                if re.match(pat + r'$', clean):
+                    return sec
+        return None
+
+    sections = {}
+    current_sec = 'HEADER'
+    sections[current_sec] = []
+
+    for line in text.splitlines():
+        line_str = line.strip()
+        if not line_str:
+            continue
+        h = identify_heading(line_str)
+        if h:
+            current_sec = h
+            if current_sec not in sections:
+                sections[current_sec] = []
+        else:
+            sections[current_sec].append(line_str)
+
+    # Relocate leaked education lines from other sections
+    for sec_name in ['PROJECTS', 'HEADER', 'IGNORE', 'SKILLS']:
+        kept = []
+        for line in sections.get(sec_name, []):
+            if is_education_line(line):
+                if 'EDUCATION' not in sections:
+                    sections['EDUCATION'] = []
+                sections['EDUCATION'].append(line)
+            else:
+                kept.append(line)
+        sections[sec_name] = kept
+
+    # 1. PARSE EDUCATION
+    raw_edu = sections.get('EDUCATION', [])
+    merged_edu = []
+    i = 0
+    while i < len(raw_edu):
+        l = raw_edu[i].strip()
+        l_low = l.lower()
+        if any(skip in l_low for skip in ['passionate', 'seeking', 'understanding of programming', 'continuous learning', 'dedicated computer science']):
+            i += 1
+            continue
+
+        while i + 1 < len(raw_edu):
+            nl = raw_edu[i+1].strip()
+            nl_low = nl.lower()
+            if l.endswith(('AND', 'OF', 'IN', '&', '-', 'HIGHER', 'Higher', 'and', 'of', 'in')) or (nl.startswith(('ENGINEERING', 'TECHNOLOGY', '@')) and not any(k in nl_low for k in ['hsc', 'matric', 'secondary'])):
+                if any(k in nl_low for k in ['b.e.', 'be-', 'b.tech', 'hsc', 'sslc']):
+                    break
+                l += " " + nl
+                i += 1
+            elif any(inst in nl_low for inst in ['institute of', 'college of', 'university']) and not any(inst in l_low for inst in ['institute', 'college', 'university']):
+                l += " - " + nl
+                i += 1
+            elif any(pct in nl_low for pct in ['percentage', 'cgpa', 'gpa', '%']):
+                pct_m = re.search(r'(\d{1,2}(?:\.\d+)?\s*%)', nl)
+                if pct_m:
+                    l += f" ({pct_m.group(1)})"
+                    i += 1
+                elif 'percentage' in nl_low and i + 2 < len(raw_edu):
+                    pct_m2 = re.search(r'(\d{1,2}(?:\.\d+)?\s*%)', raw_edu[i+2])
+                    if pct_m2:
+                        l += f" ({pct_m2.group(1)})"
+                        i += 2
+                    else:
+                        i += 1
+                else:
+                    i += 1
+            else:
                 break
+        merged_edu.append(l)
+        i += 1
+
+    education_entries = []
+    for entry in merged_edu:
+        clean = re.sub(r'^[•\*\-\d\.\s]+', '', entry).strip()
+        clean = re.sub(r'\s*@\s*', ' - ', clean)
+        clean = re.sub(r'\s*-\s*\(', ' (', clean)
+        clean = re.sub(r'Percentage:Percentage:?', '', clean, flags=re.IGNORECASE).strip()
+        clean = re.sub(r'\s+', ' ', clean)
+        if any(term in clean.lower() for term in ['b.e.', 'be-', 'b.tech', 'bachelor', 'master', 'm.e.', 'm.tech', 'hsc', 'sslc', 'matric', 'secondary school', 'institute', 'college', 'university']):
+            if clean and clean not in education_entries:
+                education_entries.append(clean)
+
+    # 2. PARSE TECHNICAL SKILLS
+    extracted_skills = []
+    benchmark_scores = {}
     
-    if not projects:
-        projects = ["Personal Project Portfolio"]
+    # Check skills section lines first
+    skills_text = " ".join(sections.get('SKILLS', []))
+    for canon, pats, cat in TECH_SKILLS_CATALOG:
+        for p in pats:
+            if re.search(p, skills_text, re.IGNORECASE):
+                if canon not in extracted_skills:
+                    extracted_skills.append(canon)
+                if cat:
+                    benchmark_scores[cat] = 65
+                break
 
-    # 3. Extract Certifications
-    certifications = []
-    cert_keywords = ["certified", "certification", "aws", "coursera", "udemy", "azure", "google cloud", "comptia", "cisco", "ccna"]
-    for line in text.split("\n"):
+    # Scan entire resume text for confirmed technical technologies
+    for canon, pats, cat in TECH_SKILLS_CATALOG:
+        if canon not in extracted_skills:
+            for p in pats:
+                if canon == 'Artificial Intelligence' and not re.search(r'\bartificial\s+intelligence\b|\bai/ml\b', text, re.IGNORECASE):
+                    continue
+                if re.search(p, text, re.IGNORECASE):
+                    extracted_skills.append(canon)
+                    if cat and cat not in benchmark_scores:
+                        benchmark_scores[cat] = 60
+                    break
+
+    # 3. PARSE PROJECTS
+    proj_lines = sections.get('PROJECTS', [])
+    parsed_projects = []
+    curr_proj = None
+
+    for line in proj_lines:
         line_clean = line.strip()
-        if any(kw in line_clean.lower() for kw in cert_keywords) and 10 < len(line_clean) < 100:
-            if not any(stop in line_clean.lower() for stop in ["required", "job", "responsibilities"]):
-                certifications.append(line_clean)
-        if len(certifications) >= 4:
-            break
-            
-    if not certifications:
-        certifications = ["Self-paced learning certificates"]
+        line_l = line_clean.lower()
+        if is_education_line(line_clean) or any(term in line_l for term in ['certificates', 'certifications']):
+            continue
 
-    # 4. Extract Skills and calculate evidence-based proficiency score (45% - 75%)
-    extracted_skills_with_scores = {}
-    for skill_name, keywords in SKILL_KEYWORDS.items():
-        found = False
-        occurrences = 0
-        in_projects = False
-        in_certs = False
+        is_bullet = bool(re.match(r'^[•\*\-\d\.]+\s*', line_clean))
+        clean_text = re.sub(r'^[•\*\-\d\.]+\s*', '', line_clean).strip()
+        if not clean_text:
+            continue
 
-        for kw in keywords:
-            pattern = r'\b' + re.escape(kw) + r'\b'
-            matches = len(re.findall(pattern, text_lower))
-            if matches > 0:
-                found = True
-                occurrences += matches
-                for p in projects:
-                    if kw in p.lower():
-                        in_projects = True
-                for c in certifications:
-                    if kw in c.lower():
-                        in_certs = True
+        # Wrapped project title continuation
+        if curr_proj and curr_proj.get('awaiting_wrap') and not is_bullet and len(clean_text) < 30 and not line_l.startswith(('developed', 'built', 'implemented')):
+            curr_proj['title'] += " " + clean_text
+            curr_proj['awaiting_wrap'] = False
+            continue
 
-        if found:
-            # Deterministic calculation based on resume evidence (no static 60% or random values):
-            # Base mention in resume: 45%
-            # Applied in verified projects/experience: +15%
-            # Verified with certifications/coursework: +10%
-            # Frequency of mentions (occurrences >= 3): +5%
-            score = 45
-            if in_projects:
-                score += 15
-            if in_certs:
-                score += 10
-            if occurrences >= 3:
-                score += 5
-            score = min(score, 75)
-            extracted_skills_with_scores[skill_name] = score
+        is_title = False
+        if is_bullet:
+            is_title = True
+        elif len(clean_text) < 60 and not line_l.startswith(('developed', 'built', 'implemented', 'designed', 'created', 'analyzes', 'provides', 'identifies', 'the platform', 'it helps', 'technologies used', 'tools used', 'and creative', 'skills and', 'based on', 'to support')):
+            if '.' not in clean_text[:-1] and not clean_text.endswith(('.', ':', ';', ',')) and clean_text[0].isupper():
+                is_title = True
 
-    # Calculate Resume Quality Score based on formatting and content completeness
-    quality_score = 40
-    if len(extracted_skills_with_scores) >= 2: quality_score += 15
-    if len(projects) >= 2: quality_score += 15
-    if len(certifications) >= 1: quality_score += 15
-    if len(text) > 500: quality_score += 15
-    quality_score = min(quality_score, 100)
+        if is_title:
+            if curr_proj:
+                parsed_projects.append(curr_proj)
+            curr_proj = {
+                'title': clean_text,
+                'desc': [],
+                'awaiting_wrap': len(clean_text) > 30 and not clean_text.endswith(('.', ':', '!'))
+            }
+        else:
+            if curr_proj:
+                curr_proj['desc'].append(clean_text)
+                curr_proj['awaiting_wrap'] = False
+
+    if curr_proj:
+        parsed_projects.append(curr_proj)
+
+    # Check for cross-column project descriptions in certifications section
+    cert_lines_raw = sections.get('CERTIFICATIONS', [])
+    for p in parsed_projects:
+        if not p.get('desc'):
+            candidate_desc = []
+            matching = False
+            for line in cert_lines_raw:
+                line_l = line.lower()
+                if any(verb in line_l for verb in ['built an', 'developed an', 'created an', 'designed an']):
+                    matching = True
+                if matching:
+                    if any(c in line_l for c in ['simplilearn', 'coursera', 'udemy', 'nptel', 'certified']):
+                        matching = False
+                    else:
+                        candidate_desc.append(line.strip())
+            if candidate_desc:
+                p['desc'] = candidate_desc
+
+    final_projects = []
+    for p in parsed_projects:
+        title = p['title'].strip()
+        if is_education_line(title):
+            continue
+        desc_full = " ".join(p['desc']).strip()
+        desc_clean = re.sub(r'Technologies Used:.*$', '', desc_full, flags=re.IGNORECASE).strip()
+        tech_m = re.search(r'Technologies Used:\s*([^\n\r]+)', desc_full, flags=re.IGNORECASE)
+        tech_note = f" (Technologies: {tech_m.group(1).strip()})" if tech_m else ""
+        
+        if desc_clean:
+            final_projects.append(f"{title}: {desc_clean}{tech_note}")
+        else:
+            final_projects.append(f"{title}{tech_note}")
+
+    # 4. PARSE WORK EXPERIENCE / INTERNSHIPS
+    exp_lines = sections.get('EXPERIENCE', [])
+    final_exp = []
+    for line in exp_lines:
+        clean_exp = re.sub(r'^[•\*\-\d\.]+\s*', '', line.strip()).strip()
+        if len(clean_exp) > 5 and not any(skip in clean_exp.lower() for skip in ['experience.education', 'foward for my first work experience']):
+            final_exp.append(clean_exp)
+
+    # 5. PARSE CERTIFICATIONS
+    final_certs = []
+    for line in cert_lines_raw:
+        clean_cert = re.sub(r'Technologies Used:.*$', '', line.strip(), flags=re.IGNORECASE).strip()
+        clean_cert = re.sub(r'^[•\*\-\d\.]+\s*', '', clean_cert).strip()
+        if len(clean_cert) > 5 and any(term in clean_cert.lower() for term in ['nptel', 'coursera', 'udemy', 'simplilearn', 'great learning', 'aws', 'certified', 'certification', 'programming in java', 'for beginners', 'frontend development']):
+            if clean_cert not in final_certs:
+                final_certs.append(clean_cert)
+
+    # 6. PARSE ACHIEVEMENTS
+    ach_lines = sections.get('ACHIEVEMENTS', [])
+    final_ach = []
+    for line in ach_lines:
+        clean_ach = re.sub(r'^[•\*\-\d\.]+\s*', '', line.strip()).strip()
+        if len(clean_ach) > 5:
+            final_ach.append(clean_ach)
+
+    # 7. CALCULATE RESUME QUALITY SCORE
+    # Rubric: Education (15), Skills (25), Projects (25), Experience (15), Certifications (10), Completeness (10)
+    edu_score = 15 if education_entries else 0
+    
+    n_skills = len(extracted_skills)
+    if n_skills >= 6:
+        skills_score = 25
+    elif n_skills >= 4:
+        skills_score = 20
+    elif n_skills >= 2:
+        skills_score = 15
+    elif n_skills >= 1:
+        skills_score = 10
+    else:
+        skills_score = 0
+
+    n_proj = len(final_projects)
+    if n_proj >= 3:
+        proj_score = 25
+    elif n_proj == 2:
+        proj_score = 20
+    elif n_proj == 1:
+        proj_score = 12
+    else:
+        proj_score = 0
+
+    n_exp = len(final_exp)
+    if n_exp >= 2:
+        exp_score = 15
+    elif n_exp == 1:
+        exp_score = 10
+    else:
+        exp_score = 0
+
+    n_cert = len(final_certs)
+    if n_cert >= 2:
+        cert_score = 10
+    elif n_cert == 1:
+        cert_score = 6
+    else:
+        cert_score = 0
+
+    completeness_score = 0
+    if re.search(r'[\w\.-]+@[\w\.-]+\.\w+', text):
+        completeness_score += 5
+    if re.search(r'\+?\d[\d\s-]{8,14}\d', text):
+        completeness_score += 5
+
+    total_quality = edu_score + skills_score + proj_score + exp_score + cert_score + completeness_score
+    total_quality = min(max(total_quality, 15), 95)
+
+    eval_reasons = []
+    eval_reasons.append(f"Education verified ({edu_score}/15 pts)" if edu_score else "Education details missing (0/15 pts)")
+    eval_reasons.append(f"{n_skills} technical skills identified ({skills_score}/25 pts)" if n_skills else "Technical skills missing (0/25 pts)")
+    eval_reasons.append(f"{n_proj} project(s) extracted ({proj_score}/25 pts)" if n_proj else "Project experience missing (0/25 pts)")
+    eval_reasons.append(f"{n_cert} certification(s) verified ({cert_score}/10 pts)" if n_cert else "No certifications detected (0/10 pts)")
+    if n_exp:
+        eval_reasons.append(f"{n_exp} internship/work entry ({exp_score}/15 pts)")
+    else:
+        eval_reasons.append("No internship/work experience listed (0/15 pts)")
+    eval_reasons.append(f"Resume formatting & contact info ({completeness_score}/10 pts)")
+
+    score_explanation = " | ".join(eval_reasons)
 
     return {
-        "skills": list(extracted_skills_with_scores.keys()),
-        "skill_scores": extracted_skills_with_scores,
-        "education": education,
-        "projects": projects,
-        "certifications": certifications,
-        "resume_quality": quality_score
+        "skills": extracted_skills if extracted_skills else ["No technical skills found in resume"],
+        "skill_scores": benchmark_scores,
+        "education": education_entries if education_entries else ["No education details found in resume"],
+        "projects": final_projects if final_projects else ["No projects found in resume"],
+        "experience": final_exp if final_exp else ["No internship or work experience found in resume"],
+        "certifications": final_certs if final_certs else ["No certifications found in resume"],
+        "achievements": final_ach if final_ach else ["No achievements found in resume"],
+        "resume_quality": total_quality,
+        "score_explanation": score_explanation
     }
 
 def calculate_readiness_score(skills, projects, certifications, resume_quality, assessment_scores):

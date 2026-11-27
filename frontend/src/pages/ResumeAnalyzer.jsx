@@ -154,7 +154,14 @@ export default function ResumeAnalyzer() {
                 {result && !loading && (
                     <div className="glass-panel analysis-results-panel">
                         <div className="results-header">
-                            <h3>AI Parser Extraction Report</h3>
+                            <div>
+                                <h3>AI Parser Extraction Report</h3>
+                                {result.score_explanation && (
+                                    <p className="section-desc" style={{ marginTop: '0.35rem', fontSize: '0.85rem' }}>
+                                        {result.score_explanation}
+                                    </p>
+                                )}
+                            </div>
                             <div className="quality-score-badge">
                                 <span>Resume Quality:</span>
                                 <strong>{result.resume_quality}/100</strong>
@@ -163,39 +170,83 @@ export default function ResumeAnalyzer() {
 
                         <div className="extracted-fields-grid">
                             
-                            <div className="extraction-block">
+                            <div className="extraction-block full-width">
                                 <div className="block-title">🎓 Education Found</div>
-                                <p className="block-val">{result.education}</p>
+                                {Array.isArray(result.education) && result.education.length > 0 && !result.education[0].startsWith("No ") && result.education[0] !== "Not found in resume" ? (
+                                    <ul className="bullet-results-list">
+                                        {result.education.map((edu, idx) => (
+                                            <li key={idx}><span className="block-val">{edu}</span></li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="block-val" style={{ color: 'var(--text-muted)', fontWeight: 'normal' }}>
+                                        {typeof result.education === 'string' && !result.education.startsWith("No ") ? result.education : "No education details found in resume"}
+                                    </p>
+                                )}
                             </div>
 
-                            <div className="extraction-block">
-                                <div className="block-title">🛠️ Extracted Skills</div>
+                            <div className="extraction-block full-width">
+                                <div className="block-title">🛠️ Extracted Technical Skills</div>
                                 <div className="skills-badge-wrap">
-                                    {result.skills.length > 0 ? (
+                                    {result.skills && result.skills.length > 0 && !result.skills[0].startsWith("No ") && result.skills[0] !== "Not found in resume" ? (
                                         result.skills.map(sk => (
                                             <span key={sk} className="skill-badge">{sk}</span>
                                         ))
                                     ) : (
-                                        <span className="no-badge-text">No matching skills identified (check keyword formatting).</span>
+                                        <span className="no-badge-text">No technical skills found in resume</span>
                                     )}
                                 </div>
                             </div>
 
                             <div className="extraction-block full-width">
-                                <div className="block-title">📂 Identified Projects & Experience Items</div>
+                                <div className="block-title">📁 Identified Projects</div>
                                 <ul className="bullet-results-list">
-                                    {result.projects.map((proj, idx) => (
-                                        <li key={idx}>{proj}</li>
-                                    ))}
+                                    {result.projects && result.projects.length > 0 && !result.projects[0].startsWith("No ") && result.projects[0] !== "Not found in resume" ? (
+                                        result.projects.map((proj, idx) => (
+                                            <li key={idx}>{proj}</li>
+                                        ))
+                                    ) : (
+                                        <li style={{ color: 'var(--text-muted)' }}>No projects found in resume</li>
+                                    )}
                                 </ul>
                             </div>
 
                             <div className="extraction-block full-width">
-                                <div className="block-title">🏅 Certifications Identified</div>
+                                <div className="block-title">💼 Internship / Work Experience</div>
                                 <ul className="bullet-results-list">
-                                    {result.certifications.map((cert, idx) => (
-                                        <li key={idx}>{cert}</li>
-                                    ))}
+                                    {result.experience && result.experience.length > 0 && !result.experience[0].startsWith("No ") && result.experience[0] !== "Not found in resume" ? (
+                                        result.experience.map((exp, idx) => (
+                                            <li key={idx}>{exp}</li>
+                                        ))
+                                    ) : (
+                                        <li style={{ color: 'var(--text-muted)' }}>No internship or work experience found in resume</li>
+                                    )}
+                                </ul>
+                            </div>
+
+                            <div className="extraction-block full-width">
+                                <div className="block-title">📜 Certifications Identified</div>
+                                <ul className="bullet-results-list">
+                                    {result.certifications && result.certifications.length > 0 && !result.certifications[0].startsWith("No ") && result.certifications[0] !== "Not found in resume" ? (
+                                        result.certifications.map((cert, idx) => (
+                                            <li key={idx}>{cert}</li>
+                                        ))
+                                    ) : (
+                                        <li style={{ color: 'var(--text-muted)' }}>No certifications found in resume</li>
+                                    )}
+                                </ul>
+                            </div>
+
+                            <div className="extraction-block full-width">
+                                <div className="block-title">🏆 Achievements</div>
+                                <ul className="bullet-results-list">
+                                    {result.achievements && result.achievements.length > 0 && !result.achievements[0].startsWith("No ") && result.achievements[0] !== "Not found in resume" ? (
+                                        result.achievements.map((ach, idx) => (
+                                            <li key={idx}>{ach}</li>
+                                        ))
+                                    ) : (
+                                        <li style={{ color: 'var(--text-muted)' }}>No achievements found in resume</li>
+                                    )}
                                 </ul>
                             </div>
 

@@ -59,9 +59,15 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
             file_path TEXT NOT NULL,
+            score INTEGER DEFAULT 50,
             FOREIGN KEY(user_id) REFERENCES Users(id) ON DELETE CASCADE
         )
     ''')
+
+    cursor.execute("PRAGMA table_info(Resumes)")
+    res_cols = [row['name'] for row in cursor.fetchall()]
+    if 'score' not in res_cols:
+        cursor.execute("ALTER TABLE Resumes ADD COLUMN score INTEGER DEFAULT 50")
 
     # Roadmaps Table
     cursor.execute('''

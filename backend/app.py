@@ -447,11 +447,11 @@ def get_stats():
     assessments = {row['assessment_name']: row['score'] for row in cursor.fetchall()}
 
     # 4. Fetch Resume quality details
-    cursor.execute("SELECT file_path FROM Resumes WHERE user_id = ?", (user_id,))
+    cursor.execute("SELECT file_path, score FROM Resumes WHERE user_id = ? ORDER BY id DESC LIMIT 1", (user_id,))
     resume_row = cursor.fetchone()
     resume_quality = 50 # Default baseline
-    if resume_row:
-        resume_quality = 85 # Simulated higher score for uploaded resumes
+    if resume_row and resume_row['score']:
+        resume_quality = resume_row['score']
 
     # 5. Fetch Completed Items
     cursor.execute("SELECT * FROM Progress WHERE user_id = ?", (user_id,))
@@ -521,21 +521,27 @@ def upload_resume():
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
+    if not file.filename.lower().endswith('.pdf'):
+        return jsonify({"error": "Please select a valid PDF document file."}), 400
+
     filename = secure_filename(f"user_{user_id}_{file.filename}")
     save_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(save_path)
 
-    # Parse Resume using AI Parser
+    # Fresh parse of the newly uploaded PDF resume
     parsed_report = ai_engine.parse_resume_from_pdf(save_path)
-    if not parsed_report:
-        return jsonify({"error": "Failed to parse resume text"}), 500
+    if not parsed_report or parsed_report.get('error'):
+        error_msg = parsed_report.get('error') if parsed_report else "Failed to parse resume text"
+        return jsonify({"error": error_msg}), 400
 
     # Save details to DB
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # 1. Update Resume path
-    cursor.execute("INSERT OR REPLACE INTO Resumes (user_id, file_path) VALUES (?, ?)", (user_id, save_path))
+    # 1. Update Resume record with fresh score (clear previous resume for this user)
+    cursor.execute("DELETE FROM Resumes WHERE user_id = ?", (user_id,))
+    cursor.execute("INSERT INTO Resumes (user_id, file_path, score) VALUES (?, ?, ?)", 
+                   (user_id, save_path, parsed_report.get('resume_quality', 60)))
 
     # 2. Add or update skills from resume with real calculated scores (no static 60%)
     skill_scores = parsed_report.get('skill_scores', {})
